@@ -2,56 +2,47 @@
 # @return {Integer}
 require 'set'
 def min_cut(s)
-  return 0 if s.length==1 || is_palindrome?(s)
-  dp= {}
-  dp[s] = false
-
-  #there will be atleast one palindrom
-  remaining_ones = Set.new([s])
-  level = 0
-  loop do
-    substrs = remaining_ones
-    remaining_ones = Set.new([])
-    # print "\nfor level => #{level}"
-    # print substrs
-    # print "\n"
-    substrs.each do |sub_str|
-      for i in 0..sub_str.length-2
-        sub_1 = sub_str[0..i]
-        sub_2 = sub_str[i+1..s.length-1]
-        dp[sub_1] = is_palindrome?(sub_1) if dp[sub_1].nil?
-        dp[sub_2] = is_palindrome?(sub_2) if dp[sub_2].nil?
-        if dp[sub_1] && dp[sub_2]
-          return (level+1)
-        else
-          str = nil
-          str = sub_2 if dp[sub_1]
-          str = sub_1 if dp[sub_2]
-          if str
-            if remaining_ones.empty? || remaining_ones.first.length==str.length
-              remaining_ones<<str 
-            elsif str.length<remaining_ones.first.length
-              remaining_ones = Set.new([str])
-            end
-          end
-        end
-      end
+  return 0 if s.length<=1 
+  n = s.length
+  dp = build_matrix(s, n)
+  total_cuts = Array.new(n)
+  0.upto(n-1) do |j|
+    cut =j
+    0.upto(j) do |i|
+      cut = [cut, (i==0)? 0 : total_cuts[i-1]+1].min if dp[i][j]
     end
-    level+=1
+    total_cuts[j]=cut
   end
-  return 0
+  # print dp[0]
+  # print "\n"
+  return total_cuts[n-1]
+end
+
+def build_matrix(str, n)
+  dp = Array.new(n) {Array.new(n)}
+  (n-1).downto(0) do |i|
+    i.upto(n-1) do |j|
+      dp[i][j] = true if str[i]==str[j] && (j-i<=2 || dp[i+1][j-1])
+    end
+  end
+  return dp
 end
 
 # a
-def is_palindrome?(sub_str)
-  mid = ((sub_str.length-1)/2)
-  for i in 0..mid
-    return false if sub_str[i] != sub_str[sub_str.length-1-i]
+def is_palindrome?(sub_str, left, right, dp)
+  while(left<right)
+    return false if sub_str[left]!=sub_str[right]
+    left+=1
+    right-=1
   end
   return true
 end
 
-arr = ["aab","ababbbabbaba","eegiicgaeadbcfacfhifdbiehbgejcaeggcgbahfcajfhjjdgj","apjesgpsxoeiokmqmfgvjslcjukbqxpsobyhjpbgdfruqdkeiszrlmtwgfxyfostpqczidfljwfbbrflkgdvtytbgqalguewnhvvmcgxboycffopmtmhtfizxkmeftcucxpobxmelmjtuzigsxnncxpaibgpuijwhankxbplpyejxmrrjgeoevqozwdtgospohznkoyzocjlracchjqnggbfeebmuvbicbvmpuleywrpzwsihivnrwtxcukwplgtobhgxukwrdlszfaiqxwjvrgxnsveedxseeyeykarqnjrtlaliyudpacctzizcftjlunlgnfwcqqxcqikocqffsjyurzwysfjmswvhbrmshjuzsgpwyubtfbnwajuvrfhlccvfwhxfqthkcwhatktymgxostjlztwdxritygbrbibdgkezvzajizxasjnrcjwzdfvdnwwqeyumkamhzoqhnqjfzwzbixclcxqrtniznemxeahfozp"]
+arr = ["aab",
+"ababbbabbaba",
+"eegiicgaeadbcfacfhifdbiehbgejcaeggcgbahfcajfhjjdgj",
+"apjesgpsxoeiokmqmfgvjslcjukbqxpsobyhjpbgdfruqdkeiszrlmtwgfxyfostpqczidfljwfbbrflkgdvtytbgqalguewnhvvmcgxboycffopmtmhtfizxkmeftcucxpobxmelmjtuzigsxnncxpaibgpuijwhankxbplpyejxmrrjgeoevqozwdtgospohznkoyzocjlracchjqnggbfeebmuvbicbvmpuleywrpzwsihivnrwtxcukwplgtobhgxukwrdlszfaiqxwjvrgxnsveedxseeyeykarqnjrtlaliyudpacctzizcftjlunlgnfwcqqxcqikocqffsjyurzwysfjmswvhbrmshjuzsgpwyubtfbnwajuvrfhlccvfwhxfqthkcwhatktymgxostjlztwdxritygbrbibdgkezvzajizxasjnrcjwzdfvdnwwqeyumkamhzoqhnqjfzwzbixclcxqrtniznemxeahfozp",
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"]
 arr.each do |item|
   print min_cut(item)
   print "\n================\n"
